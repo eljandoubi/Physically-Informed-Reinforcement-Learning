@@ -1,9 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "pirl"
 version = "0.1.0"
-description = "Add your description here"
+description = "Physically-informed reinforcement learning: PPO with multimodal (RGB-D + proprioceptive) perception for robotic manipulation in Robosuite."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+keywords = ["reinforcement-learning", "robotics", "ppo", "robosuite", "mujoco", "pytorch"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "mujoco>=3.7.0",
     "python-dotenv>=1.2.2",
@@ -14,3 +30,39 @@ dependencies = [
     "tqdm>=4.67.3",
     "wandb>=0.26.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/eljandoubi/Physically-Informed-Reinforcement-Learning"
+Issues = "https://github.com/eljandoubi/Physically-Informed-Reinforcement-Learning/issues"
+
+[project.scripts]
+pirl-train = "pirl.ppo_train:cli"
+pirl-video = "pirl.video:cli"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["pirl"]
+omit = ["tests/*"]
+disable_warnings = ["couldnt-parse"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pirl"]
+
+[tool.ruff]
+line-length = 90
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "W"]
+
