@@ -10,7 +10,7 @@ observes `object-state` directly.
 
 [![CI](https://github.com/eljandoubi/Physically-Informed-Reinforcement-Learning/actions/workflows/ci.yml/badge.svg)](https://github.com/eljandoubi/Physically-Informed-Reinforcement-Learning/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 [![uv](https://img.shields.io/badge/package%20manager-uv-de5fe9.svg)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/badge/lint%2Fformat-ruff-261230.svg)](https://github.com/astral-sh/ruff)
 
@@ -83,7 +83,7 @@ flowchart LR
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.11+
 - [uv](https://github.com/astral-sh/uv) for dependency management
 - [`just`](https://github.com/casey/just) (optional but recommended task runner)
 - A MuJoCo-compatible offscreen rendering backend for actually running the
