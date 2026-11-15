@@ -7,7 +7,7 @@ name = "pirl"
 version = "0.1.0"
 description = "Physically-informed reinforcement learning: PPO with multimodal (RGB-D + proprioceptive) perception for robotic manipulation in Robosuite."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 keywords = ["reinforcement-learning", "robotics", "ppo", "robosuite", "mujoco", "pytorch"]
 classifiers = [
@@ -15,7 +15,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -61,7 +60,7 @@ packages = ["pirl"]
 
 [tool.ruff]
 line-length = 90
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "W"]
