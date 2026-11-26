@@ -59,6 +59,7 @@ def stack_obs(obs_list: list[dict[str, torch.Tensor]]) -> dict[str, torch.Tensor
 def worker(remote, env_fn, env_kwargs, filter_keys):
     try:
         env = env_fn(**env_kwargs)
+        episode_success = False
 
         while True:
             cmd, data = remote.recv()
@@ -66,15 +67,20 @@ def worker(remote, env_fn, env_kwargs, filter_keys):
             if cmd == "step":
                 action = data
                 obs_raw, reward, done, _ = env.step(action)
+                episode_success = episode_success or bool(env._check_success())
+                completed_success = None
 
                 if done:
+                    completed_success = episode_success
                     obs_raw = env.reset()
+                    episode_success = False
 
                 obs = filter_state(obs_raw, filter_keys)
-                remote.send((obs, reward, done))
+                remote.send((obs, reward, done, completed_success))
 
             elif cmd == "reset":
                 obs_raw = env.reset()
+                episode_success = False
                 obs = filter_state(obs_raw, filter_keys)
                 remote.send(obs)
 
@@ -113,6 +119,7 @@ class SubprocVecEnv:
         self.work_remotes = [None] * num_envs
         self.ps = [None] * num_envs
         self.last_obs = [None] * num_envs
+        self.completed_successes = [None] * num_envs
 
         for i in range(num_envs):
             self._spawn(i)
@@ -214,6 +221,7 @@ class SubprocVecEnv:
         logger.info("resetting all envs")
 
         obs = []
+        self.completed_successes = [None] * self.num_envs
 
         for i in range(self.num_envs):
             try:
@@ -241,6 +249,7 @@ class SubprocVecEnv:
     # step
     # -------------------------
     def step(self, actions):
+        self.completed_successes = [None] * self.num_envs
         # send actions
         for i, (r, a) in enumerate(zip(self.remotes, actions)):
             try:
@@ -264,7 +273,7 @@ class SubprocVecEnv:
                 r = 0.0
                 d = True
             else:
-                o, r, d = result
+                o, r, d, self.completed_successes[i] = result
                 self.last_obs[i] = o
 
             obs.append(o)

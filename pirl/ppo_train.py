@@ -1,7 +1,9 @@
 import torch.multiprocessing as mp
 
 mp.set_start_method("spawn", force=True)
+import json  # noqa: E402
 import os  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 import torch  # noqa: E402
 import wandb  # noqa: E402
@@ -14,26 +16,29 @@ from pirl.robotenv import SubprocVecEnv, get_env_infos, make_env  # noqa: E402
 from pirl.rollout import RolloutBuffer  # noqa: E402
 from pirl.video import video_render  # noqa: E402
 
-print("Loading environment variables...", load_dotenv())
-
 
 def main(config: TrainingConfig = TrainingConfig()):
     exit_code = 0
+    env = None
+    run = None
     try:
-        run = wandb.init(
-            project="ppo-robosuite",
-            config=config.__dict__,
-            id=config.runid,
-            resume="allow",
-            # mode="disabled",
-        )
-        config.set_id(run.id)
+        if config.use_wandb:
+            load_dotenv()
+            run = wandb.init(
+                project="ppo-robosuite",
+                config=config.__dict__,
+                id=config.runid,
+                resume="allow",
+            )
+            config.set_id(run.id)
         config.update_path()
-        wandb.config.update(
-            {"checkpoint_dir": config.checkpoint_dir, "runid": run.id},
-            allow_val_change=True,
-        )
+        if run is not None:
+            wandb.config.update(
+                {"checkpoint_dir": config.checkpoint_dir, "runid": run.id},
+                allow_val_change=True,
+            )
         checkpoint_best_path = f"{config.checkpoint_dir}/PPO_{config.env_name}_best.pth"
+        episode_log_path = Path(config.checkpoint_dir) / "episodes.jsonl"
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         keys = [
             "robot0_eye_in_hand_image",
@@ -88,6 +93,19 @@ def main(config: TrainingConfig = TrainingConfig()):
                     obs = next_obs
                     time_step += 1
                     current_ep_reward += torch.mean(rewards).item()
+                    completed = [
+                        {
+                            "step": time_step * config.num_envs,
+                            "env_id": index,
+                            "success": success,
+                        }
+                        for index, success in enumerate(env.completed_successes)
+                        if success is not None
+                    ]
+                    if completed:
+                        with episode_log_path.open("a", encoding="utf-8") as episode_log:
+                            for episode in completed:
+                                episode_log.write(json.dumps(episode) + "\n")
 
                 if current_ep_reward > best_reward:
                     best_reward = current_ep_reward
@@ -126,16 +144,21 @@ def main(config: TrainingConfig = TrainingConfig()):
                 if ppo_agent.obj_pred_losses:
                     log_payload["obj_pred_loss"] = ppo_agent.obj_pred_losses[-1]
 
-                wandb.log(log_payload, step=time_step)
+                if run is not None:
+                    wandb.log(log_payload, step=time_step)
 
         video_render(config, agent=ppo_agent)
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    except BaseException:
         exit_code = 1
+        raise
 
     finally:
-        wandb.finish(exit_code=exit_code)
-        env.close()
+        try:
+            if env is not None:
+                env.close()
+        finally:
+            if run is not None:
+                wandb.finish(exit_code=exit_code)
 
 
 def cli():

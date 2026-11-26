@@ -13,7 +13,7 @@ import torch
 
 pytest.importorskip("robosuite")
 
-from pirl.robotenv import filter_state, stack_obs  # noqa: E402
+from pirl.robotenv import filter_state, stack_obs, worker  # noqa: E402
 
 
 def test_filter_state_only_keeps_requested_keys_as_float32_tensors():
@@ -42,3 +42,51 @@ def test_stack_obs_stacks_each_key_along_a_new_batch_dimension():
     assert stacked["feat"].shape == (2, 2)
     assert torch.equal(stacked["feat"], torch.tensor([[1.0, 2.0], [3.0, 4.0]]))
     assert torch.equal(stacked["scalar"], torch.tensor([1.0, 2.0]))
+
+
+def test_worker_reports_success_for_completed_episodes_and_resets_it():
+    class Remote:
+        def __init__(self):
+            self.commands = iter(
+                [
+                    ("step", None),
+                    ("step", None),
+                    ("step", None),
+                    ("reset", None),
+                    ("step", None),
+                    ("close", None),
+                ]
+            )
+            self.sent = []
+
+        def recv(self):
+            return next(self.commands)
+
+        def send(self, value):
+            self.sent.append(value)
+
+    class Environment:
+        def __init__(self):
+            self.steps = iter(
+                [(False, True), (True, False), (False, True), (True, False)]
+            )
+            self.success = False
+
+        def step(self, action):
+            done, self.success = next(self.steps)
+            return {"state": np.array([1.0])}, 0.0, done, {}
+
+        def _check_success(self):
+            return self.success
+
+        def reset(self):
+            return {"state": np.array([0.0])}
+
+    remote = Remote()
+    environment = Environment()
+    worker(remote, lambda: environment, {}, ["state"])
+
+    assert remote.sent[0][3] is None
+    assert remote.sent[1][3] is True
+    assert remote.sent[2][3] is None
+    assert remote.sent[4][3] is False

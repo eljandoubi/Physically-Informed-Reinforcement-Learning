@@ -9,7 +9,7 @@ A shared visual-proprioceptive backbone is also trained to predict the object's 
 
 ## Results
 
-No success rate is reported yet. Training logs progress to the console and to Weights & Biases.
+No success rate is reported yet. Training logs progress to the console and records completed episodes locally. Weights & Biases tracking is optional.
 
 ## How to run
 
@@ -19,7 +19,7 @@ No success rate is reported yet. Training logs progress to the console and to We
 - [uv](https://github.com/astral-sh/uv) for dependency management.
 - [`just`](https://github.com/casey/just) as a task runner (optional, recommended).
 - A MuJoCo-compatible offscreen rendering backend to run the simulation (training and video rendering, not the unit tests). Set `MUJOCO_GL` to `egl` on a machine with an NVIDIA GPU, or to `osmesa` for CPU-only software rendering, which needs the `libosmesa6-dev` system package on Debian or Ubuntu.
-- A [Weights & Biases](https://wandb.ai/) login. `pirl-train` always calls `wandb.init`, so put your API key in a local `.env` file (for example `WANDB_API_KEY=...`) or set `WANDB_MODE=disabled` to run without an account.
+- A [Weights & Biases](https://wandb.ai/) login only when `--use_wandb` is enabled. Put the API key in a local `.env` file or the environment.
 
 ### Install
 
@@ -38,7 +38,7 @@ just train
 # equivalent to: uv run pirl-train
 ```
 
-Checkpoints are written to `ppo_checkpoints/<wandb-run-id>/`. Progress is logged to the console and to Weights & Biases.
+Checkpoints are written to `ppo_checkpoints/<run-id>/`, or `ppo_checkpoints/default_run/` without a run ID. `episodes.jsonl` in that directory records the environment index, total environment steps and whether the task succeeded at any point in each completed episode. Enable Weights & Biases with `--use_wandb`.
 
 ### Render a video
 
@@ -78,6 +78,7 @@ The most commonly tuned options:
 | `--use_object_obs` | `True` | Enable the auxiliary object-state prediction loss. |
 | `--img_size` | `64` | RGB/depth observation resolution fed to the CNNs. |
 | `--load_checkpoint_path` | `None` | Resume training from a saved checkpoint. |
+| `--use_wandb` | `False` | Enable Weights & Biases tracking. |
 | `--runid` | `None` | Resume/attach to an existing Weights & Biases run. |
 
 Run `uv run pirl-train --help` for the full list, generated from the dataclass.
@@ -101,7 +102,7 @@ flowchart LR
 - A CNN on RGB, a CNN on depth and an MLP on proprioceptive state are fused into one embedding. The actor, the critic and the auxiliary object-state predictor share it.
 - PPO uses a clipped surrogate objective and generalized advantage estimation (GAE(λ)). It has separate learning rates for the backbone, actor, critic and predictor, a fixed or learned action variance, and gradient clipping.
 - `SubprocVecEnv` runs `N` Robosuite workers in parallel. It detects, rebuilds and recovers from crashed worker processes instead of taking down the whole training run.
-- Weights & Biases tracks the runs, with resume support and automatic checkpointing of the best and latest policies.
+- Weights & Biases can track runs with resume support. The best and latest policies are checkpointed whether tracking is enabled or not.
 - `pirl-video` renders a multi-camera mosaic (front, bird, agent, side, robot and eye-in-hand views) of a trained policy to an `.mp4`.
 - Tooling is uv for dependencies, a `justfile` task runner, ruff for lint and format, a pytest suite and GitHub Actions CI. `pirl/` is an installable Python package.
 

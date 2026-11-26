@@ -48,6 +48,7 @@ class TrainingConfig:
     checkpoint_dir: str = "./ppo_checkpoints"
     load_checkpoint_path: str | None = None
 
+    use_wandb: bool = False
     runid: str | None = None  # Wandb run ID for resuming runs
 
     def __post_init__(self):

@@ -18,7 +18,7 @@ def video_render(
     config: TrainingConfig = TrainingConfig(),
     agent: PPO | None = None,
 ):
-    if config.runid is not None:
+    if config.runid is not None and agent is None:
         config.update_path()
 
     # =========================
