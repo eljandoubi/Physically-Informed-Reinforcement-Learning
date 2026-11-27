@@ -215,7 +215,7 @@ class SubprocVecEnv:
             o = self._safe_recv(i)
 
             if o is None:
-                logger.warning(f"[env {i}] reset failed → rebuild")
+                logger.warning(f"[env {i}] reset failed -> rebuild")
                 o = self._rebuild_worker(i)
 
             if o is None:
@@ -242,7 +242,7 @@ class SubprocVecEnv:
             result = self._safe_recv(i)
 
             if result is None:
-                logger.warning(f"[env {i}] step failed → hot swap")
+                logger.warning(f"[env {i}] step failed -> hot swap")
                 o = self._rebuild_worker(i)
 
                 if o is None:

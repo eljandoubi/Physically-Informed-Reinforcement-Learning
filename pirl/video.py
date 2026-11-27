@@ -179,7 +179,7 @@ def video_render(
 
     video.release()
 
-    print(f"✅ Video saved to {video_path}")
+    print(f"Video saved to {video_path}")
 
 
 def cli():
