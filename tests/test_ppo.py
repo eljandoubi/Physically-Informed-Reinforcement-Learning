@@ -15,11 +15,6 @@ def _make_config(**overrides):
     return TrainingConfig(**defaults)
 
 
-# --------------------------------------------------------------------------- #
-# TrainingConfig
-# --------------------------------------------------------------------------- #
-
-
 def test_update_timestep_is_derived_from_ep_len_and_num_envs():
     config = TrainingConfig(max_ep_len=10, num_envs=4)
 
@@ -89,11 +84,6 @@ def test_set_id_updates_runid():
     config.set_id("my-run")
 
     assert config.runid == "my-run"
-
-
-# --------------------------------------------------------------------------- #
-# PPO agent
-# --------------------------------------------------------------------------- #
 
 
 def test_select_action_shapes(obs_shapes, make_obs, img_size, embed_dim):

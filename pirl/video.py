@@ -21,9 +21,7 @@ def video_render(
     if config.runid is not None and agent is None:
         config.update_path()
 
-    # =========================
     # Config
-    # =========================
 
     img_size = config.img_size
     max_episode_steps = config.max_ep_len
@@ -57,9 +55,7 @@ def video_render(
         agent = PPO(action_dim, device, obs_shapes, config)
         agent.load(checkpoint_best_path)
 
-    # =========================
     # Agent policy
-    # =========================
     def to_torch(obs):
         result = {}
         for k in obs_shapes.keys():
@@ -81,9 +77,7 @@ def video_render(
         action = action.squeeze(0).cpu().numpy()
         return action.clip(-1, 1)
 
-    # =========================
     # Create environment
-    # =========================
     env = suite.make(
         "Lift",
         robots="Panda",
@@ -100,9 +94,7 @@ def video_render(
         camera_depths=True,
     )
 
-    # =========================
     # Helpers
-    # =========================
     def add_label(img, text):
         return cv2.putText(
             img.copy(),
@@ -139,9 +131,7 @@ def video_render(
 
         return frame
 
-    # =========================
     # Run episode + collect frames
-    # =========================
     frames = []
 
     obs = env.reset()
@@ -174,9 +164,7 @@ def video_render(
 
     env.close()
 
-    # =========================
     # Save video
-    # =========================
     h, w, _ = frames[0].shape
 
     video = cv2.VideoWriter(

@@ -95,9 +95,6 @@ def worker(remote, env_fn, env_kwargs, filter_keys):
             pass
 
 
-# -------------------------
-# logger
-# -------------------------
 logger = logging.getLogger("SubprocVecEnv")
 logger.setLevel(logging.INFO)
 
@@ -124,9 +121,6 @@ class SubprocVecEnv:
         for i in range(num_envs):
             self._spawn(i)
 
-    # -------------------------
-    # fallback obs (CRITICAL)
-    # -------------------------
     def _get_fallback_obs(self, i):
         if self.last_obs[i] is not None:
             return self.last_obs[i]
@@ -140,9 +134,6 @@ class SubprocVecEnv:
 
         raise RuntimeError(f"[env {i}] cannot recover valid observation")
 
-    # -------------------------
-    # spawn worker
-    # -------------------------
     def _spawn(self, i):
         logger.info(f"[env {i}] spawning worker")
 
@@ -172,9 +163,6 @@ class SubprocVecEnv:
             logger.error(f"[env {i}] spawn failed: {e}")
             self.last_obs[i] = None
 
-    # -------------------------
-    # rebuild worker
-    # -------------------------
     def _rebuild_worker(self, i):
         logger.warning(f"[env {i}] rebuilding worker")
 
@@ -193,9 +181,6 @@ class SubprocVecEnv:
         self._spawn(i)
         return self.last_obs[i]
 
-    # -------------------------
-    # safe recv (NON-BLOCKING)
-    # -------------------------
     def _safe_recv(self, i):
         r = self.remotes[i]
         p = self.ps[i]
@@ -214,9 +199,6 @@ class SubprocVecEnv:
             logger.error(f"[env {i}] recv failed: {e}")
             return None
 
-    # -------------------------
-    # reset
-    # -------------------------
     def reset(self):
         logger.info("resetting all envs")
 
@@ -245,9 +227,6 @@ class SubprocVecEnv:
 
         return stack_obs(obs)
 
-    # -------------------------
-    # step
-    # -------------------------
     def step(self, actions):
         self.completed_successes = [None] * self.num_envs
         # send actions
@@ -283,9 +262,6 @@ class SubprocVecEnv:
         dones = torch.as_tensor(dones, dtype=torch.float32)
         return stack_obs(obs), rewards, dones
 
-    # -------------------------
-    # close
-    # -------------------------
     def close(self):
         logger.info("closing all envs")
 
